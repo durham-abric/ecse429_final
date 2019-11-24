@@ -105,13 +105,18 @@ pool.join()
 mutantsKilled = len(updatedMutants)
 
 for mutant in updatedMutants:
+    #Print information on mutants killed during simulation
+    print("Mutant in {} killed by test vector: ({})".format(mutant["file"], ", ".join(str(arg) for arg in mutant['test vector'])))
     #Include data on whether mutant was killed, fault-free vs. mutant output, and the killing test vector in the library lines
     libFunc.addSimulationData(libLines, mutant)
 
+#Print coverage statistics of mutant simulation
+simulationCoverage = mutantCoverageTemplate.format(mutantsKilled, len(mutants), mutantsKilled/len(mutants))
+print("\n" + simulationCoverage)
+
 #Add simulation results (mutant coverage) to the library lines
 libLines.append(sectionBreak)
-libLines.append(mutantCoverageTemplate.format(mutantsKilled, len(mutants), mutantsKilled/len(mutants)))
-
+libLines.append(simulationCoverage)
 
 #Rewrite library to include simulation data & mutant coverage
 with open(mutantLibName, "w+") as lib:
