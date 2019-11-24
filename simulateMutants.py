@@ -1,5 +1,6 @@
 import sys, os, json
 import mutantLibFunctions as libFunc
+import multiprocessing as mp
 import pandas as pd
 
 mutantDirectory = "mutants"
@@ -26,7 +27,7 @@ def killMutant(moduleName, mutant, original):
             mutant["test vector"] = testVector
             mutant["fault free output"] = expectedOutput
             mutant["mutant output"] = type(e) + ": " + e
-            return True
+            return mutant
         #If the output does not match the expected (fault-free) output, store the test data & the mutant has been 'killed'
         #Return as a single test vector that kills mutant is satifactory
         if mutantOutput != expectedOutput:
@@ -34,8 +35,8 @@ def killMutant(moduleName, mutant, original):
             mutant["test vector"] = testVector
             mutant["fault free output"] = expectedOutput
             mutant["mutant output"] = mutantOutput
-            return True
-    return False
+            return mutant
+    return None
 
 #Ensure program has been called correctly
 if(len(sys.argv) != 2):
@@ -82,15 +83,28 @@ mutants = libFunc.getLibMutants(1, libLines)
 #Append mutant directory to path to access (import) mutant versions of SUT
 sys.path.append(os.path.abspath(os.path.join(".", mutantDirectory)))
 
-#Determine number of mutants killed by simulation
-mutantsKilled = 0
+# Create a pool for multiprocessing
+pool = mp.Pool(mp.cpu_count())
+
+updatedMutants = []
 
 #Determine the output of each mutated version
 #If an input produces incorrect output, save test vector killing the mutant (see killMutant() above)
 for mutant in mutants:
     mutantName = mutantModuleTemplate.format(sutName, mutant["line"], mutant["position"])
-    #If mutant is killed, increment the # of mutants killed
-    if killMutant(mutantName, mutant, faultFree): mutantsKilled += 1
+    # Start a new process to run a simulation
+    updatedMutant = pool.apply_async(killMutant, args=(mutantName, mutant, faultFree), callback=(
+        lambda updatedMutant: updatedMutants.append(updatedMutant)
+    ))
+
+# Wait for all simulations to complete before continuing
+pool.close()
+pool.join()
+
+#Determine number of mutants killed by simulation
+mutantsKilled = len(updatedMutants)
+
+for mutant in updatedMutants:
     #Include data on whether mutant was killed, fault-free vs. mutant output, and the killing test vector in the library lines
     libFunc.addSimulationData(libLines, mutant)
 
