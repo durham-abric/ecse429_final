@@ -14,7 +14,8 @@ def killMutant(moduleName, mutant, original):
     #Import the mutant SUT module
     mutantSoftware = __import__(moduleName, globals=globals())
     #Compare input/output of the fault-free (original) & mutant versions of SUT
-    for index, row in original.iterrows():
+    #Loop through in random order of test vectors
+    for index, row in original.sample(frac=1.0).iterrows():
         #Select an input vector & its expected (fault-free) output
         testVector = row["args"]
         expectedOutput = row["output"]
@@ -63,20 +64,12 @@ sutExtension = sutFileName.split(".")[1]
 sut = __import__(sutName, globals=globals())
 
 #Define possible argument values
-argumentValues1 = [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]
-random.shuffle(argumentValues1)
-#Shuffle arguments for variety in test vector order (mutant tends to be killed quickly)
-argumentValues2 = argumentValues1.copy()
-random.shuffle(argumentValues2)
-argumentValues3 = argumentValues2.copy()
-random.shuffle(argumentValues3)
-argumentValues4 = argumentValues3.copy()
-random.shuffle(argumentValues4)
+argumentValues = [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]
 #Construct list of all test vectors (permutations of 4 values in argumentValues)
-testVectors = [(arg1, arg2, arg3, arg4) for arg1 in argumentValues1
-                                        for arg2 in argumentValues2
-                                        for arg3 in argumentValues3
-                                        for arg4 in argumentValues4]
+testVectors = [(arg1, arg2, arg3, arg4) for arg1 in argumentValues
+                                        for arg2 in argumentValues
+                                        for arg3 in argumentValues
+                                        for arg4 in argumentValues]
 
 #Save the fault-free input/output for all test vectors
 faultFree = []
