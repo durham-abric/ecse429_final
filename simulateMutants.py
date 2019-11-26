@@ -1,4 +1,4 @@
-import sys, os, json
+import sys, os, random
 import mutantLibFunctions as libFunc
 import multiprocessing as mp
 import pandas as pd
@@ -63,15 +63,20 @@ sutExtension = sutFileName.split(".")[1]
 sut = __import__(sutName, globals=globals())
 
 #Define possible argument values
-argumentValues = [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]
-#Include reversed arguments for variety in test vector (mutant tends to be killed quickly)
-reversedArgumentValues = argumentValues.copy()
-reversedArgumentValues.reverse()
+argumentValues1 = [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]
+random.shuffle(argumentValues1)
+#Shuffle arguments for variety in test vector order (mutant tends to be killed quickly)
+argumentValues2 = argumentValues1.copy()
+random.shuffle(argumentValues2)
+argumentValues3 = argumentValues2.copy()
+random.shuffle(argumentValues3)
+argumentValues4 = argumentValues3.copy()
+random.shuffle(argumentValues4)
 #Construct list of all test vectors (permutations of 4 values in argumentValues)
-testVectors = [(arg1, arg2, arg3, arg4) for arg1 in argumentValues
-                                       for arg2 in reversedArgumentValues
-                                       for arg3 in argumentValues
-                                       for arg4 in reversedArgumentValues]
+testVectors = [(arg1, arg2, arg3, arg4) for arg1 in argumentValues1
+                                        for arg2 in argumentValues2
+                                        for arg3 in argumentValues3
+                                        for arg4 in argumentValues4]
 
 #Save the fault-free input/output for all test vectors
 faultFree = []
