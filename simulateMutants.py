@@ -7,7 +7,7 @@ mutantDirectory = "mutants"
 mutantModuleTemplate = "{}_mutant_{}_{}"
 softwareTemplate = "{}/{}.{}"
 sectionBreak = "\n_____________________________________________________________________\n\n"
-mutantCoverageTemplate = "Mutant Coverage:\n{} of {} mutants killed\t-\t{:.2%} Coverage\n\n"
+mutantCoverageTemplate = "Mutant Coverage:\n{} of {} mutants killed\t-\t{:.2%} Coverage\n"
 
 #Function to find test vector that kills a mutant version of SUT
 def killMutant(moduleName, mutant, original):
@@ -62,12 +62,16 @@ sutExtension = sutFileName.split(".")[1]
 #Import the fault-free output of the software under test (SUT)
 sut = __import__(sutName, globals=globals())
 
+#Define possible argument values
+argumentValues = [-2.0, -1.0, -0.5, 0.5, 1.0, 2.0]
+#Include reversed arguments for variety in test vector (mutant tends to be killed quickly)
+reversedArgumentValues = argumentValues.copy()
+reversedArgumentValues.reverse()
 #Construct list of all test vectors (permutations of 4 values in argumentValues)
-argumentValues = [-10.0, -1.0, -0.5, 0.5, 1.0, 10.0]
 testVectors = [(arg1, arg2, arg3, arg4) for arg1 in argumentValues
-                                       for arg2 in argumentValues
+                                       for arg2 in reversedArgumentValues
                                        for arg3 in argumentValues
-                                       for arg4 in argumentValues]
+                                       for arg4 in reversedArgumentValues]
 
 #Save the fault-free input/output for all test vectors
 faultFree = []
@@ -86,6 +90,7 @@ sys.path.append(os.path.abspath(os.path.join(".", mutantDirectory)))
 # Create a pool for multiprocessing
 pool = mp.Pool(mp.cpu_count())
 
+#Store the status of mutants killed by simulation
 updatedMutants = []
 
 #Determine the output of each mutated version
@@ -104,19 +109,20 @@ pool.join()
 #Determine number of mutants killed by simulation
 mutantsKilled = len(updatedMutants)
 
+print(sectionBreak)
+
 for mutant in updatedMutants:
     #Print information on mutants killed during simulation
     print("Mutant in {} killed by test vector: ({})".format(mutant["file"], ", ".join(str(arg) for arg in mutant['test vector'])))
     #Include data on whether mutant was killed, fault-free vs. mutant output, and the killing test vector in the library lines
     libFunc.addSimulationData(libLines, mutant)
 
+print(sectionBreak)
+
 #Print coverage statistics of mutant simulation
 simulationCoverage = mutantCoverageTemplate.format(mutantsKilled, len(mutants), mutantsKilled/len(mutants))
-print("\n" + simulationCoverage)
-
 #Add simulation results (mutant coverage) to the library lines
-libLines.append(sectionBreak)
-libLines.append(simulationCoverage)
+libLines.append(sectionBreak + simulationCoverage + sectionBreak)
 
 #Rewrite library to include simulation data & mutant coverage
 with open(mutantLibName, "w+") as lib:

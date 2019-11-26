@@ -95,7 +95,7 @@ lib.close()
 
 #Print out basic information to the user
 print(sectionBreak)
-print("This program generates mutants (and saves the library of mutants) for a program under test:")
+print("Mutants generated (and saved to the library of mutants) for a software under test:")
 print("\t- " + softwareUnderTest.format(inputProgramPath))
 print("\t- Mutant library saved at: {}".format(outputLibraryPath))
 print(sectionBreak)

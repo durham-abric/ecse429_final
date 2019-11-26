@@ -63,7 +63,7 @@ with open(mutantLibName, "w+") as lib:
 
 #Print out basic information to the user
 print(sectionBreak)
-print("This program inserts mutants (from a previously saved mutant library) into software under test:")
+print("Mutants inserted (from specified mutant library) into software under test:")
 print("\t- Library of mutants: {}".format(mutantLibName))
 print("\t- {} Mutants saved in directory: ./mutants".format(len(mutants)))
 print(sectionBreak)
